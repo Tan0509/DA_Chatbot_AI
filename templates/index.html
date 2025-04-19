@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Chatbot AI</h1>
+    <div id="chatbox"></div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Nhập câu hỏi..." autocomplete="off" />
+        <button onclick="sendMessage()">Gửi</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("user-input");
+            const message = input.value.trim();
+            if (!message) return;
+
+            appendMessage("user", message);
+            input.value = "";
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+            const botReply = data.reply || "Không có phản hồi từ AI.";
+            appendMessage("bot", botReply);
+
+        }
+
+        function appendMessage(sender, text) {
+            const chatbox = document.getElementById("chatbox");
+            const msg = document.createElement("div");
+            msg.className = `message ${sender}`;
+
+            const avatar = document.createElement("div");
+            avatar.className = "avatar";
+            avatar.textContent = sender === "user" ? "🧑" : "🤖";
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.innerHTML = marked.parse(text); // markdown
+
+            msg.appendChild(avatar);
+            msg.appendChild(bubble);
+            chatbox.appendChild(msg);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+    </script>
+
+    <!-- Markdown parser CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</body>
+</html>
